@@ -48,7 +48,14 @@
 #define PM_PWM_LUT_NO_TABLE		0x20
 #define PM_PWM_LUT_USE_RAW_VALUE	0x40
 
+#define LCD_MIN_BRIGHTNESS 4
+
 #define LCD_FILE "/sys/class/leds/lcd-backlight/brightness"
+
+#define KEYBOARD_PWM_1_BRIGHTNESS_FILE "/sys/class/leds/kpdbl-pwm-1/brightness"
+#define KEYBOARD_PWM_2_BRIGHTNESS_FILE "/sys/class/leds/kpdbl-pwm-2/brightness"
+#define KEYBOARD_PWM_3_BRIGHTNESS_FILE "/sys/class/leds/kpdbl-pwm-3/brightness"
+#define KEYBOARD_PWM_4_BRIGHTNESS_FILE "/sys/class/leds/kpdbl-pwm-4/brightness"
 
 #define RED_BRIGHTNESS_FILE "/sys/class/leds/led:rgb_red/brightness"
 #define RED_DUTY_PCTS_FILE "/sys/class/leds/led:rgb_red/duty_pcts"
@@ -260,13 +267,28 @@ static int set_light_backlight(struct light_device_t *dev,
 {
     int err = 0;
     int brightness = rgb_to_brightness(state);
+    int keyboard_brightness = 0;
+
+    brightness = brightness == 0 ? 0 : (brightness < LCD_MIN_BRIGHTNESS ? LCD_MIN_BRIGHTNESS : brightness);
+
+    if (brightness > 25) {
+        keyboard_brightness = 0;
+    } else if (brightness >= 4) {
+        keyboard_brightness = 20 + 80 * (brightness - 4) / (25 - 4);
+    } else if (brightness == 0) {
+        keyboard_brightness = 0;
+    }
 
     if (!dev)
         return -ENODEV;
 
     pthread_mutex_lock(&g_lock);
 
-    err = write_int(LCD_FILE, brightness);
+    err |= write_int(LCD_FILE, brightness);
+    err |= write_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE, keyboard_brightness);
+    err |= write_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE, keyboard_brightness);
+    err |= write_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE, keyboard_brightness);
+    err |= write_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE, keyboard_brightness);
 
     pthread_mutex_unlock(&g_lock);
 
@@ -362,7 +384,7 @@ struct hw_module_t HAL_MODULE_INFO_SYM = {
     .module_api_version = 1,
     .hal_api_version = HARDWARE_HAL_API_VERSION,
     .id = LIGHTS_HARDWARE_MODULE_ID,
-    .name = "Venice Lights HAL",
+    .name = "WSeries Lights HAL",
     .author = "The LineageOS Project",
     .methods = &lights_module_methods,
 };
