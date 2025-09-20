@@ -276,41 +276,9 @@ static void handle_speaker_light_locked(struct light_device_t *dev)
     }
 }
 
-static int set_light_backlight(struct light_device_t *dev,
-        const struct light_state_t *state)
+static int set_light_keyboard(int brightness)
 {
     int err = 0;
-    int brightness = rgb_to_brightness(state);
-    
-    if (!dev)
-        return -ENODEV;
-
-    int current_brightness = read_int(LCD_FILE);
-
-    if (current_brightness < 0)
-        current_brightness = 0;
-
-    pthread_mutex_lock(&g_lock);
-
-    for (int i = 1; i <= LED_DUTY_STEPS; ++i) {
-        int value = current_brightness + (brightness - current_brightness) * i / LED_DUTY_STEPS;
-        err = write_int(LCD_FILE, value);
-        usleep(LED_RAMP_MS / LED_DUTY_STEPS * 1000);
-    }
-
-    pthread_mutex_unlock(&g_lock);
-
-    return err;
-}
-
-static int set_light_keyboard(struct light_device_t *dev,
-        const struct light_state_t *state)
-{
-    int err = 0;
-    int brightness = rgb_to_brightness(state);
-
-    if (!dev)
-        return -ENODEV;
 
     int current_brightness_pwm_1 = read_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE);
     int current_brightness_pwm_2 = read_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE);
@@ -341,6 +309,44 @@ static int set_light_keyboard(struct light_device_t *dev,
     }
 
     pthread_mutex_unlock(&g_lock);
+
+    return err;
+}
+
+static int set_light_backlight(struct light_device_t *dev,
+        const struct light_state_t *state)
+{
+    int err = 0;
+    int brightness = rgb_to_brightness(state);
+    int keyboard_brightness = 0;
+    
+    if (!dev)
+        return -ENODEV;
+
+    int current_brightness = read_int(LCD_FILE);
+
+    if (current_brightness < 0)
+        current_brightness = 0;
+
+    pthread_mutex_lock(&g_lock);
+
+    for (int i = 1; i <= LED_DUTY_STEPS; ++i) {
+        int value = current_brightness + (brightness - current_brightness) * i / LED_DUTY_STEPS;
+        err = write_int(LCD_FILE, value);
+        usleep(LED_RAMP_MS / LED_DUTY_STEPS * 1000);
+    }
+
+    pthread_mutex_unlock(&g_lock);
+
+    if (brightness > 25) {
+        keyboard_brightness = 0;
+    } else if (brightness >= 5) {
+        keyboard_brightness = 20 + 80 * (brightness - 4) / (25 - 4);
+    } else if (brightness == 0) {
+        keyboard_brightness = 0;
+    }
+
+    set_light_keyboard(keyboard_brightness);
 
     return err;
 }
@@ -400,8 +406,6 @@ static int open_lights(const struct hw_module_t *module, const char *name,
 
     if (!strcmp(LIGHT_ID_BACKLIGHT, name))
         set_light = set_light_backlight;
-    else if (!strcmp(LIGHT_ID_KEYBOARD, name))
-        set_light = set_light_keyboard;
     else if (!strcmp(LIGHT_ID_BATTERY, name))
         set_light = set_light_battery;
     else if (!strcmp(LIGHT_ID_NOTIFICATIONS, name))
