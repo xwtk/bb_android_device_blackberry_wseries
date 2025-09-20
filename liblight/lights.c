@@ -48,8 +48,6 @@
 #define PM_PWM_LUT_NO_TABLE		0x20
 #define PM_PWM_LUT_USE_RAW_VALUE	0x40
 
-#define LCD_MIN_BRIGHTNESS 4
-
 #define LCD_FILE "/sys/class/leds/lcd-backlight/brightness"
 
 #define KEYBOARD_PWM_1_BRIGHTNESS_FILE "/sys/class/leds/kpdbl-pwm-1/brightness"
@@ -267,28 +265,34 @@ static int set_light_backlight(struct light_device_t *dev,
 {
     int err = 0;
     int brightness = rgb_to_brightness(state);
-    int keyboard_brightness = 0;
+    
+    if (!dev)
+        return -ENODEV;
 
-    brightness = brightness == 0 ? 0 : (brightness < LCD_MIN_BRIGHTNESS ? LCD_MIN_BRIGHTNESS : brightness);
+    pthread_mutex_lock(&g_lock);
+    
+    err = write_int(LCD_FILE, brightness);
+    
+    pthread_mutex_unlock(&g_lock);
 
-    if (brightness > 25) {
-        keyboard_brightness = 0;
-    } else if (brightness >= 4) {
-        keyboard_brightness = 20 + 80 * (brightness - 4) / (25 - 4);
-    } else if (brightness == 0) {
-        keyboard_brightness = 0;
-    }
+    return err;
+}
+
+static int set_light_keyboard(struct light_device_t *dev,
+        const struct light_state_t *state)
+{
+    int err = 0;
+    int brightness = rgb_to_brightness(state);
 
     if (!dev)
         return -ENODEV;
 
     pthread_mutex_lock(&g_lock);
 
-    err |= write_int(LCD_FILE, brightness);
-    err |= write_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE, keyboard_brightness);
-    err |= write_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE, keyboard_brightness);
-    err |= write_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE, keyboard_brightness);
-    err |= write_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE, keyboard_brightness);
+    err |= write_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE, brightness);
+    err |= write_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE, brightness);
+    err |= write_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE, brightness);
+    err |= write_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE, brightness);
 
     pthread_mutex_unlock(&g_lock);
 
@@ -350,6 +354,8 @@ static int open_lights(const struct hw_module_t *module, const char *name,
 
     if (!strcmp(LIGHT_ID_BACKLIGHT, name))
         set_light = set_light_backlight;
+    else if (!strcmp(LIGHT_ID_KEYBOARD, name))
+        set_light = set_light_keyboard;
     else if (!strcmp(LIGHT_ID_BATTERY, name))
         set_light = set_light_battery;
     else if (!strcmp(LIGHT_ID_NOTIFICATIONS, name))
