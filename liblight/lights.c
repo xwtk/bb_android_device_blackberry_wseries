@@ -90,6 +90,22 @@ static struct light_state_t g_battery;
 static struct light_state_t g_notification;
 static struct light_state_t g_attention;
 
+static int read_int(const char *path)
+{
+    int fd = open(path, O_RDONLY);
+    if (fd >= 0) {
+        char buffer[20];
+        int amt = read(fd, buffer, sizeof(buffer)-1);
+        close(fd);
+        if (amt <= 0) return -1;
+        buffer[amt] = '\0';
+        return atoi(buffer);
+    } else {
+        ALOGE("read_int failed to open %s\n", path);
+        return -errno;
+    }
+}
+
 static int write_int(const char *path, int value)
 {
     int fd = open(path, O_WRONLY);
@@ -269,10 +285,19 @@ static int set_light_backlight(struct light_device_t *dev,
     if (!dev)
         return -ENODEV;
 
+    int current_brightness = read_int(LCD_FILE);
+
+    if (current_brightness < 0)
+        current_brightness = 0;
+
     pthread_mutex_lock(&g_lock);
-    
-    err = write_int(LCD_FILE, brightness);
-    
+
+    for (int i = 1; i <= LED_DUTY_STEPS; ++i) {
+        int value = current_brightness + (brightness - current_brightness) * i / LED_DUTY_STEPS;
+        err = write_int(LCD_FILE, value);
+        usleep(LED_RAMP_MS / LED_DUTY_STEPS * 1000);
+    }
+
     pthread_mutex_unlock(&g_lock);
 
     return err;
@@ -287,12 +312,33 @@ static int set_light_keyboard(struct light_device_t *dev,
     if (!dev)
         return -ENODEV;
 
+    int current_brightness_pwm_1 = read_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE);
+    int current_brightness_pwm_2 = read_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE);
+    int current_brightness_pwm_3 = read_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE);
+    int current_brightness_pwm_4 = read_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE);
+
+    if (current_brightness_pwm_1 < 0)
+        current_brightness_pwm_1 = 0;
+    if (current_brightness_pwm_2 < 0)
+        current_brightness_pwm_2 = 0;
+    if (current_brightness_pwm_3 < 0)
+        current_brightness_pwm_3 = 0;
+    if (current_brightness_pwm_4 < 0)
+        current_brightness_pwm_4 = 0;
+
     pthread_mutex_lock(&g_lock);
 
-    err |= write_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE, brightness);
-    err |= write_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE, brightness);
-    err |= write_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE, brightness);
-    err |= write_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE, brightness);
+    for (int i = 1; i <= LED_DUTY_STEPS; ++i) {
+        int value_pwm_1 = current_brightness_pwm_1 + (brightness - current_brightness_pwm_1) * i / LED_DUTY_STEPS;
+        int value_pwm_2 = current_brightness_pwm_2 + (brightness - current_brightness_pwm_2) * i / LED_DUTY_STEPS;
+        int value_pwm_3 = current_brightness_pwm_3 + (brightness - current_brightness_pwm_3) * i / LED_DUTY_STEPS;
+        int value_pwm_4 = current_brightness_pwm_4 + (brightness - current_brightness_pwm_4) * i / LED_DUTY_STEPS;
+        err |= write_int(KEYBOARD_PWM_1_BRIGHTNESS_FILE, value_pwm_1);
+        err |= write_int(KEYBOARD_PWM_2_BRIGHTNESS_FILE, value_pwm_2);
+        err |= write_int(KEYBOARD_PWM_3_BRIGHTNESS_FILE, value_pwm_3);
+        err |= write_int(KEYBOARD_PWM_4_BRIGHTNESS_FILE, value_pwm_4);
+        usleep(LED_RAMP_MS / LED_DUTY_STEPS * 1000);
+    }
 
     pthread_mutex_unlock(&g_lock);
 
