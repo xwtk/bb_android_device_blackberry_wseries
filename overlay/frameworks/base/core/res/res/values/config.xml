@@ -45,7 +45,10 @@
         <item>100</item>
         <item>200</item>
         <item>400</item>
+        <item>700</item>
         <item>1000</item>
+        <item>1200</item>
+        <item>1800</item>
         <item>2000</item>
         <item>3000</item>
         <item>5000</item>
@@ -63,10 +66,13 @@
         <item>5</item>
         <item>13</item>
         <item>20</item>
+        <item>25</item>
+        <item>30</item>
         <item>40</item>
         <item>50</item>
-        <item>65</item>
-        <item>75</item>
+        <item>55</item>
+        <item>70</item>
+        <item>90</item>
         <item>100</item>
         <item>120</item>
         <item>130</item>
@@ -81,6 +87,7 @@
          than the size of the config_autoBrightnessLevels array.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessButtonBacklightValues">
+        <item>0</item>
         <item>0</item>
         <item>0</item>
         <item>0</item>
