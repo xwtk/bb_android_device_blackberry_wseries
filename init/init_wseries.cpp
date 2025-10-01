@@ -93,22 +93,4 @@ void vendor_load_properties() {
 	    property_override("ro.product.vendor.device", codename.c_str());
 	    property_override("ro.product.vendor.name", codename.c_str());
     }
-    
-    if (codename == "wolverine" || codename == "wichita") {
-	    property_override("persist.audio.calfile0", "/vendor/etc/acdbdata/Wolverine/Wolverine_Bluetooth_cal.acdb");
-	    property_override("persist.audio.calfile1", "/vendor/etc/acdbdata/Wolverine/Wolverine_General_cal.acdb");
-	    property_override("persist.audio.calfile2", "/vendor/etc/acdbdata/Wolverine/Wolverine_Global_cal.acdb");
-	    property_override("persist.audio.calfile3", "/vendor/etc/acdbdata/Wolverine/Wolverine_Handset_cal.acdb");
-	    property_override("persist.audio.calfile4", "/vendor/etc/acdbdata/Wolverine/Wolverine_Hdmi_cal.acdb");
-	    property_override("persist.audio.calfile5", "/vendor/etc/acdbdata/Wolverine/Wolverine_Headset_cal.acdb");
-	    property_override("persist.audio.calfile6", "/vendor/etc/acdbdata/Wolverine/Wolverine_Speaker_cal.acdb");
-    } else {
-	    property_override("persist.audio.calfile0", "/vendor/etc/acdbdata/Oslo/Oslo_Bluetooth_cal.acdb");
-	    property_override("persist.audio.calfile1", "/vendor/etc/acdbdata/Oslo/Oslo_General_cal.acdb");
-	    property_override("persist.audio.calfile2", "/vendor/etc/acdbdata/Oslo/Oslo_Global_cal.acdb");
-	    property_override("persist.audio.calfile3", "/vendor/etc/acdbdata/Oslo/Oslo_Handset_cal.acdb");
-	    property_override("persist.audio.calfile4", "/vendor/etc/acdbdata/Oslo/Oslo_Hdmi_cal.acdb");
-	    property_override("persist.audio.calfile5", "/vendor/etc/acdbdata/Oslo/Oslo_Headset_cal.acdb");
-	    property_override("persist.audio.calfile6", "/vendor/etc/acdbdata/Oslo/Oslo_Speaker_cal.acdb");
-    }
 }
