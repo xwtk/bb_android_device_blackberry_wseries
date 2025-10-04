@@ -5,3 +5,11 @@ on fs
     setprop sys.usb.ffs.aio_compat 1
     setprop persist.adb.nonblocking_ffs 0
     setprop ro.adb.nonblocking_ffs 0
+
+on post-fs
+    exec - root root -- /system/bin/efs
+
+service vtnvfsd /system/bin/vtnvfsd -b /dev/block/bootdevice/by-name -s boardid:/nvram/boardid:rw -s nvuser:/nvram/nvuser:rw -s perm:/nvram/perm:rw -s prdid:/nvram/prdid:rw -s blog:/nvram/blog:rw
+   class core
+   group nvram drmrpc
+   disabled
