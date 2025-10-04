@@ -13,6 +13,11 @@ if [ -f /persist/mfg/inproduction ]; then
     start vtnvfsd
     wait_for_mount /nvram/boardid
     start vendor_prop_loader
+    wait_for_mount /nvram/perm
+    LOOP_DEV=$(losetup -f --show --sizelimit 4096 /nvram/perm/bootcontrolblock)
+    ln -sf $LOOP_DEV /dev/block/by-name/misc
+    ln -sf /dev/block/by-name/misc /misc
+    return
     return
 fi
 
