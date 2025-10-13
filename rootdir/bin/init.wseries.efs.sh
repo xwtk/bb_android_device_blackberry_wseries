@@ -14,6 +14,9 @@ if [ -f /persist/mfg/inproduction ]; then
     wait_for_mount /nvram/boardid
     start vendor_prop_loader
     wait_for_mount /nvram/perm
+    if [ "$(stat -c%s /nvram/perm/bootcontrolblock)" -lt 4096 ]; then
+        dd if=/dev/zero bs=4096 count=1 of=/nvram/perm/bootcontrolblock conv=notrunc
+    fi
     LOOP_DEV=$(losetup -f --show --sizelimit 4096 /nvram/perm/bootcontrolblock)
     ln -sf $LOOP_DEV /dev/block/by-name/misc
     ln -sf /dev/block/by-name/misc /misc
@@ -44,6 +47,13 @@ wait_for_mount /nvram/boardid
 wait_for_mount /nvram/nvuser
 wait_for_mount /nvram/perm
 wait_for_mount /nvram/prdid
+
+if [ "$(stat -c%s /nvram/perm/bootcontrolblock)" -lt 4096 ]; then
+    dd if=/dev/zero bs=4096 count=1 of=/nvram/perm/bootcontrolblock conv=notrunc
+fi
+LOOP_DEV=$(losetup -f --show --sizelimit 4096 /nvram/perm/bootcontrolblock)
+ln -sf $LOOP_DEV /dev/block/by-name/misc
+ln -sf /dev/block/by-name/misc /misc
 
 cp /nvram/legacy/by-name/NV_OSSTORE_PIN_NUM /nvram/prdid/pin
 cp /nvram/legacy/by-name/NV_OSSTORE_bsn_NUM /nvram/boardid/bsn
