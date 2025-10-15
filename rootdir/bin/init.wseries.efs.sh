@@ -21,7 +21,6 @@ if [ -f /persist/mfg/inproduction ]; then
     ln -sf $LOOP_DEV /dev/block/by-name/misc
     ln -sf /dev/block/by-name/misc /misc
     return
-    return
 fi
 
 cd /data/local/tmp
