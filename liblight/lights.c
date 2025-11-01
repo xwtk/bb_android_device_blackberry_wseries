@@ -202,7 +202,7 @@ static int set_speaker_light_locked(struct light_device_t *dev,
             p += sprintf(p, "\n");
 
             write_int(RED_BRIGHTNESS_FILE, 0xFF);
-            write_int(RED_RAMP_STEP_MS_FILE, LED_RAMP_MS / LED_DUTY_STEPS);
+            write_int(RED_RAMP_STEP_MS_FILE, 0);
             write_str(RED_START_IDX_FILE, 0);
             write_str(RED_DUTY_PCTS_FILE, dutystr);
             write_int(RED_PAUSE_LO_FILE, (offMS > 2 * LED_RAMP_MS) ? (offMS - 2 * LED_RAMP_MS) : 0);
@@ -222,7 +222,7 @@ static int set_speaker_light_locked(struct light_device_t *dev,
             p += sprintf(p, "\n");
 
             write_int(GREEN_BRIGHTNESS_FILE, 0xFF);
-            write_int(GREEN_RAMP_STEP_MS_FILE, LED_RAMP_MS / LED_DUTY_STEPS);
+            write_int(GREEN_RAMP_STEP_MS_FILE, 0);
             write_str(GREEN_START_IDX_FILE, 0);
             write_str(GREEN_DUTY_PCTS_FILE, dutystr);
             write_int(GREEN_PAUSE_LO_FILE, (offMS > 2 * LED_RAMP_MS) ? (offMS - 2 * LED_RAMP_MS) : 0);
@@ -242,7 +242,7 @@ static int set_speaker_light_locked(struct light_device_t *dev,
             p += sprintf(p, "\n");
 
             write_int(BLUE_BRIGHTNESS_FILE, 0xFF);
-            write_int(BLUE_RAMP_STEP_MS_FILE, LED_RAMP_MS / LED_DUTY_STEPS);
+            write_int(BLUE_RAMP_STEP_MS_FILE, 0);
             write_str(BLUE_START_IDX_FILE, 0);
             write_str(BLUE_DUTY_PCTS_FILE, dutystr);
             write_int(BLUE_PAUSE_LO_FILE, (offMS > 2 * LED_RAMP_MS) ? (offMS - 2 * LED_RAMP_MS) : 0);
